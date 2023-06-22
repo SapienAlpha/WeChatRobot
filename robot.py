@@ -12,15 +12,17 @@ from func_chatgpt import ChatGPT
 from func_chengyu import cy
 from func_news import News
 from job_mgmt import Job
+from strategy_config import StrategyConfig
 
 
 class Robot(Job):
     """个性化自己的机器人
     """
 
-    def __init__(self, config: Config, wcf: Wcf) -> None:
+    def __init__(self, config: Config, wcf: Wcf, strategyConfig: StrategyConfig) -> None:
         self.wcf = wcf
         self.config = config
+        self.strategyConfig = strategyConfig
         self.LOG = logging.getLogger("Robot")
         self.wxid = self.wcf.get_self_wxid()
         self.allContacts = self.getAllContacts()
@@ -94,33 +96,48 @@ class Robot(Job):
 
         # 群聊消息
         if msg.from_group():
-            # 如果在群里被 @
-            if msg.roomid not in self.config.GROUPS:  # 不在配置的响应的群列表里，忽略
-                return
-
-            if msg.is_at(self.wxid):   # 被@
-                self.toAt(msg)
-
-            else:                # 其他消息
-                self.toChengyu(msg)
-
+            self.processRequest(msg);
             return  # 处理完群聊信息，后面就不需要处理了
 
+        if msg.type == 0x01:  # 文本消息
+            # 让配置加载更灵活，自己可以更新配置。也可以利用定时任务更新。
+            if msg.from_self():
+                if msg.content == "更新":
+                    self.config.reload()
+                    self.LOG.info("已更新")
+            else:
+                self.processRequest(msg)
+            return
+
         # 非群聊信息，按消息类型进行处理
-        if msg.type == 37:     # 好友请求
+        if msg.type == 37:  # 好友请求
             self.autoAcceptFriendRequest(msg)
 
         elif msg.type == 10000:  # 系统信息
             self.sayHiToNewFriend(msg)
 
-        elif msg.type == 0x01:   # 文本消息
-            # 让配置加载更灵活，自己可以更新配置。也可以利用定时任务更新。
-            if msg.from_self():
-                if msg.content == "^更新$":
-                    self.config.reload()
-                    self.LOG.info("已更新")
+    def processRequest(self, msg: WxMsg) -> None:
+        command = msg.content
+        if msg.is_at(self.wxid):  # 被@
+            command = re.sub(r"@.*?[\u2005|\s]", "", command).replace(" ", "")
+
+        command = command.lower().strip()
+        if '?help' == command:
+            if msg.from_group():
+                self.sendTextMsg(self.strategyConfig.HELP_REPLY, msg.roomid, msg.sender)
             else:
-                self.toChitchat(msg)  # 闲聊
+                self.sendTextMsg(self.strategyConfig.HELP_REPLY, msg.sender)
+        elif command in self.strategyConfig.STRATEGY_CONFIG:
+            strategyInfo = self.strategyConfig.STRATEGY_CONFIG[command]
+            replyText = '最新的' + strategyInfo[
+                'explanation'] + '\r' + '策略仅供参考，不构成任何投资建议。请务必阅读免责声明(http://webapp.sapienalpha.net/)'
+            chartPath = 'C:\\discortbot\\SapienStockBot\\netcoreapp3.1\\' + strategyInfo['chartFile']
+            if msg.from_group():
+                self.sendTextMsg(replyText, msg.roomid, msg.sender)
+                self.sendImgMsg(chartPath, msg.roomid)
+            else:
+                self.sendTextMsg(replyText, msg.sender)
+                self.sendImgMsg(chartPath,msg.sender)
 
     def onMsg(self, msg: WxMsg) -> int:
         try:
@@ -152,9 +169,20 @@ class Robot(Job):
         if ats == "":
             self.LOG.info(f"To {receiver}: {msg}")
             self.wcf.send_text(f"{msg}", receiver, at_list)
+            self.wcf.send_image()
         else:
             self.LOG.info(f"To {receiver}: {ats}\r{msg}")
             self.wcf.send_text(f"{ats}\n\n{msg}", receiver, at_list)
+
+    def sendImgMsg(self, path: str, receiver: str, at_list: str = "") -> None:
+        """ 发送消息
+        :param path: 图片路径
+        :param receiver: 接收人wxid或者群id
+        :param at_list: 要@的wxid, @所有人的wxid为：nofity@all
+        """
+        # {msg}{ats} 表示要发送的消息内容后面紧跟@，例如 北京天气情况为：xxx @张三，微信规定需这样写，否则@不生效
+        self.LOG.info(f"Send img To {receiver}: {path}")
+        self.wcf.send_image(path, receiver)
 
     def getAllContacts(self) -> dict:
         """
@@ -162,7 +190,7 @@ class Robot(Job):
         格式: {"wxid": "NickName"}
         """
         contacts = self.wcf.query_sql("MicroMsg.db", "SELECT UserName, NickName FROM Contact;")
-        return {contact["UserName"]: contact["NickName"]for contact in contacts}
+        return {contact["UserName"]: contact["NickName"] for contact in contacts}
 
     def keepRunningAndBlockProcess(self) -> None:
         """

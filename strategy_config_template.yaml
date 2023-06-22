@@ -1,0 +1,47 @@
+?Longtermtqqq:
+  explanation: TQQQ长期策略
+  chartFile: longtermtqqq.png
+  statusFile: null
+  enableNotify: false
+
+?Longtermspy:
+  explanation: 标普长期策略
+  chartFile: longtermspy.png
+  statusFile: SPY_status.txt
+  enableNotify: true
+
+?Longtermiwm:
+  explanation: IWM长期策略
+  chartFile: longtermiwm.png
+  statusFile: null
+  enableNotify: false
+
+?SP500:
+  explanation: 标普500短期策略
+  chartFile: sp500.png
+  statusFile: SPX-composite2_status.txt
+  enableNotify: true
+
+?NQV4:
+  explanation: 纳指100短期快速策略
+  chartFile: nqv4.png
+  statusFile: null
+  enableNotify: false
+
+?shorttermnq:
+  explanation: 纳指短期策略
+  chartFile: shorttermnq.png
+  statusFile: NQ-composite_status.txt
+  enableNotify: true
+
+?Daytradev4:
+  explanation: 纳指100日内策略(V4)
+  chartFile: daytradev4.png
+  statusFile: null
+  enableNotify: false
+
+?Daytradev5:
+  explanation: 纳指100日内策略(V5)
+  chartFile: daytradev5.png
+  statusFile: null
+  enableNotify: false
