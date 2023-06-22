@@ -169,7 +169,6 @@ class Robot(Job):
         if ats == "":
             self.LOG.info(f"To {receiver}: {msg}")
             self.wcf.send_text(f"{msg}", receiver, at_list)
-            self.wcf.send_image()
         else:
             self.LOG.info(f"To {receiver}: {ats}\r{msg}")
             self.wcf.send_text(f"{ats}\n\n{msg}", receiver, at_list)
