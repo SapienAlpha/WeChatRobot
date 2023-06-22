@@ -18,7 +18,7 @@ class Config(object):
             with open(f"{pwd}/config.yaml", "rb") as fp:
                 yconfig = yaml.safe_load(fp)
         except FileNotFoundError:
-            shutil.copyfile(f"{pwd}/config.yaml.template", f"{pwd}/config.yaml")
+            shutil.copyfile(f"{pwd}/config.template.yaml", f"{pwd}/config.yaml")
             with open(f"{pwd}/config.yaml", "rb") as fp:
                 yconfig = yaml.safe_load(fp)
 
