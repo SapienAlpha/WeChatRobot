@@ -27,7 +27,7 @@ class Config(object):
     def reload(self) -> None:
         yconfig = self._load_config()
         logging.config.dictConfig(yconfig["logging"])
-        self.GROUPS = yconfig["groups"]["enable"]
+        self.NOTIFY_GROUPS = yconfig["notifyGroups"]
         self.CHATGPT = yconfig.get("chatgpt")
         self.HTTP = yconfig.get("http")
-        self.NEWS = yconfig["news"]["receivers"]
+        self.BASE_PATH=yconfig['basePath']

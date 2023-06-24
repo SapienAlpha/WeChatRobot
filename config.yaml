@@ -36,22 +36,7 @@ logging:
 
   root:
     level: INFO
-    handlers: [console, info_file_handler, error_file_handler]
+    handlers: [console, error_file_handler]
 
-groups:
-  enable: [] # 允许响应的群 roomId，大概长这样：2xxxxxxxxx3@chatroom
-
-news:
-  receivers: [] # 定时新闻接收人（roomid 或者 wxid）
-
-# 如果要使用 ChatGPT，取消下面的注释并填写相关内容
-# chatgpt:
-#   key: 填写你 ChatGPT 的 key
-#   api: https://api.openai.com/v1 # 如果你不知道这是干嘛的，就不要改
-#   proxy: # 如果你在国内，你可能需要魔法，大概长这样：http://域名或者IP地址:端口号
-#   prompt: 你是智能聊天机器人，你叫wcferry # 根据需要对角色进行设定
-
-# 如果需要暴露 HTTP 接口，取消下面的注释
-# http:
-#   host: 0.0.0.0
-#   port: 9999
+basePath: C:\discortbot\SapienStockBot\netcoreapp3.1\
+notifyGroups: [18135061901@chatroom]# 允许响应的群 roomId，大概长这样：2xxxxxxxxx3@chatroom

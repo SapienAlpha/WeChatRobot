@@ -12,6 +12,7 @@ from func_chatgpt import ChatGPT
 from func_chengyu import cy
 from func_news import News
 from job_mgmt import Job
+from notify_status import NotifyStatus
 from strategy_config import StrategyConfig
 
 
@@ -19,10 +20,11 @@ class Robot(Job):
     """个性化自己的机器人
     """
 
-    def __init__(self, config: Config, wcf: Wcf, strategyConfig: StrategyConfig) -> None:
+    def __init__(self, config: Config, wcf: Wcf, strategyConfig: StrategyConfig,notifyStatus:NotifyStatus) -> None:
         self.wcf = wcf
         self.config = config
         self.strategyConfig = strategyConfig
+        self.notifyStatus=notifyStatus
         self.LOG = logging.getLogger("Robot")
         self.wxid = self.wcf.get_self_wxid()
         self.allContacts = self.getAllContacts()
@@ -127,11 +129,14 @@ class Robot(Job):
                 self.sendTextMsg(self.strategyConfig.HELP_REPLY, msg.roomid, msg.sender)
             else:
                 self.sendTextMsg(self.strategyConfig.HELP_REPLY, msg.sender)
+        elif command =="?wxid":
+            if msg.from_group():
+                self.sendTextMsg(msg.roomid, msg.roomid, msg.sender)
         elif command in self.strategyConfig.STRATEGY_CONFIG:
             strategyInfo = self.strategyConfig.STRATEGY_CONFIG[command]
             replyText = '最新的' + strategyInfo[
                 'explanation'] + '。\r' + '策略仅供参考，不构成任何投资建议。请务必阅读免责声明(http://webapp.sapienalpha.net/)'
-            chartPath = 'C:\\discortbot\\SapienStockBot\\netcoreapp3.1\\' + strategyInfo['chartFile']
+            chartPath = self.config.BASE_PATH + strategyInfo['chartFile']
             if msg.from_group():
                 self.sendTextMsg(replyText, msg.roomid, msg.sender)
                 self.sendImgMsg(chartPath, msg.roomid)
@@ -225,3 +230,36 @@ class Robot(Job):
         news = News().get_important_news()
         for r in receivers:
             self.sendTextMsg(news, r)
+
+    def checkConfigAndNotifySignal(self)->None:
+        try:
+            self.config.reload()
+            self.strategyConfig.reload()
+            self.notifyStatus.reload()
+
+            strategyConfig = self.strategyConfig.STRATEGY_CONFIG
+            preNotifyStatus = self.notifyStatus.NOTIFY_STATUS
+            currentNotifyStatus = {}
+
+            for key, value in strategyConfig.items():
+                try:
+                    if value['enableNotify']:
+                        statusFile = self.config.BASE_PATH + value['statusFile']
+                        f = open(statusFile)
+                        currentSignal = f.readline().strip()
+                        f.close()
+                        if key in preNotifyStatus:
+                            preSignal = preNotifyStatus[key]
+                            if currentSignal != preSignal:
+                                notifyText = '最新的' + value[
+                                    'explanation'] + '。\r' + '策略仅供参考，不构成任何投资建议。请务必阅读免责声明(http://webapp.sapienalpha.net/)'
+                                chartPath = self.config.BASE_PATH + value['chartFile']
+                                for groupId in self.config.NOTIFY_GROUPS:
+                                    self.sendTextMsg(notifyText, groupId)
+                                    self.sendImgMsg(chartPath, groupId)
+                        currentNotifyStatus[key] = currentSignal
+                except BaseException as e:
+                    self.LOG.error(f"遍历检查策略时失败：{e}")
+            self.notifyStatus.save(currentNotifyStatus)
+        except BaseException as e:
+            self.LOG.error(f"執行定時任務时失败：{e}")

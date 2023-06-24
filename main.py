@@ -6,6 +6,7 @@ import signal
 from wcferry import Wcf
 
 from configuration import Config
+from notify_status import NotifyStatus
 from robot import Robot
 from strategy_config import StrategyConfig
 
@@ -13,7 +14,8 @@ from strategy_config import StrategyConfig
 def main():
     config = Config()
     strategyConfig = StrategyConfig()
-    wcf = Wcf(debug=True)
+    notifyStatus=NotifyStatus()
+    wcf = Wcf(debug=False)
 
     def handler(sig, frame):
         wcf.cleanup()  # 退出前清理环境
@@ -21,7 +23,7 @@ def main():
 
     signal.signal(signal.SIGINT, handler)
 
-    robot = Robot(config, wcf, strategyConfig)
+    robot = Robot(config, wcf, strategyConfig,notifyStatus)
     robot.LOG.info("正在启动机器人···")
 
     # 机器人启动发送测试消息
@@ -29,6 +31,8 @@ def main():
 
     # 接收消息
     robot.enableRecvMsg()
+
+    robot.onEveryMinutes(1,robot.checkConfigAndNotifySignal)
 
     # 让机器人一直跑
     robot.keepRunningAndBlockProcess()
