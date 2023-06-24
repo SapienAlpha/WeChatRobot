@@ -29,6 +29,6 @@ class StrategyConfig(object):
 
         tmpHelpReply = '您可以发送以下命令获取最新预测：\r'
         for key, value in convertedConfig.items():
-            tmpHelpReply += key + '获取最新的' + value['explanation'] + '\r'
+            tmpHelpReply += key + ':获取最新的' + value['explanation'] + '\r'
 
         self.HELP_REPLY=tmpHelpReply
