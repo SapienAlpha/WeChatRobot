@@ -130,7 +130,7 @@ class Robot(Job):
         elif command in self.strategyConfig.STRATEGY_CONFIG:
             strategyInfo = self.strategyConfig.STRATEGY_CONFIG[command]
             replyText = '最新的' + strategyInfo[
-                'explanation'] + '.\r' + '策略仅供参考，不构成任何投资建议。请务必阅读免责声明(http://webapp.sapienalpha.net/)'
+                'explanation'] + '。\r' + '策略仅供参考，不构成任何投资建议。请务必阅读免责声明(http://webapp.sapienalpha.net/)'
             chartPath = 'C:\\discortbot\\SapienStockBot\\netcoreapp3.1\\' + strategyInfo['chartFile']
             if msg.from_group():
                 self.sendTextMsg(replyText, msg.roomid, msg.sender)
