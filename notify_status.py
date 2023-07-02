@@ -34,7 +34,7 @@ class NotifyStatus(object):
                 fp.write(yaml.dump(notifyStatus))
                 fp.close()
         except BaseException as e:
-            self.LOG.error(f"保存notify_status.yaml時失败：{e}")
+            self.LOG.error(f"Error when save notify_status.yaml: {e}")
             shutil.copyfile(f"{pwd}/notify_status_template.yaml", f"{pwd}/notify_status.yaml")
             with open(f"{pwd}/notify_status.yaml", "w") as fp:
                 fp.write(yaml.dump(notifyStatus))

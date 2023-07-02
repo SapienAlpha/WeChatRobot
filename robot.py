@@ -84,7 +84,7 @@ class Robot(Job):
 
             return True
         else:
-            self.LOG.error(f"无法从 ChatGPT 获得答案")
+            self.LOG.error(f"Can't get response from ChatGPT.")
             return False
 
     def processMsg(self, msg: WxMsg) -> None:
@@ -98,15 +98,15 @@ class Robot(Job):
 
         # 群聊消息
         if msg.from_group():
-            self.processRequest(msg);
+            self.processRequest(msg)
             return  # 处理完群聊信息，后面就不需要处理了
 
         if msg.type == 0x01:  # 文本消息
             # 让配置加载更灵活，自己可以更新配置。也可以利用定时任务更新。
             if msg.from_self():
-                if msg.content == "更新":
+                if msg.content == "UPDATE":
                     self.config.reload()
-                    self.LOG.info("已更新")
+                    self.LOG.info("config updated")
             else:
                 self.processRequest(msg)
             return
@@ -146,7 +146,7 @@ class Robot(Job):
 
     def onMsg(self, msg: WxMsg) -> int:
         try:
-            self.LOG.info(msg)  # 打印信息
+            self.LOG.debug(msg)  # 打印信息
             self.processMsg(msg)
         except Exception as e:
             self.LOG.error(e)
@@ -172,10 +172,10 @@ class Robot(Job):
 
         # {msg}{ats} 表示要发送的消息内容后面紧跟@，例如 北京天气情况为：xxx @张三，微信规定需这样写，否则@不生效
         if ats == "":
-            self.LOG.info(f"To {receiver}: {msg}")
+            self.LOG.debug(f"To {receiver}: {msg}")
             self.wcf.send_text(f"{msg}", receiver, at_list)
         else:
-            self.LOG.info(f"To {receiver}: {ats}\r{msg}")
+            self.LOG.debug(f"To {receiver}: {ats}\r{msg}")
             self.wcf.send_text(f"{ats}\n\n{msg}", receiver, at_list)
 
     def sendImgMsg(self, path: str, receiver: str, at_list: str = "") -> None:
@@ -185,7 +185,7 @@ class Robot(Job):
         :param at_list: 要@的wxid, @所有人的wxid为：nofity@all
         """
         # {msg}{ats} 表示要发送的消息内容后面紧跟@，例如 北京天气情况为：xxx @张三，微信规定需这样写，否则@不生效
-        self.LOG.info(f"Send img To {receiver}: {path}")
+        self.LOG.debug(f"Send img To {receiver}: {path}")
         self.wcf.send_image(path, receiver)
 
     def getAllContacts(self) -> dict:
@@ -213,7 +213,7 @@ class Robot(Job):
             self.wcf.accept_new_friend(v3, v4, scene)
 
         except Exception as e:
-            self.LOG.error(f"同意好友出错：{e}")
+            self.LOG.error(f"Error when agree friend request: {e}")
 
     def sayHiToNewFriend(self, msg: WxMsg) -> None:
         nickName = re.findall(r"你已添加了(.*)，现在可以开始聊天了。", msg.content)
@@ -259,7 +259,7 @@ class Robot(Job):
                                     self.sendImgMsg(chartPath, groupId)
                         currentNotifyStatus[key] = currentSignal
                 except BaseException as e:
-                    self.LOG.error(f"遍历检查策略时失败：{e}")
+                    self.LOG.error(f"Error when check strategies: {e}")
             self.notifyStatus.save(currentNotifyStatus)
         except BaseException as e:
-            self.LOG.error(f"執行定時任務时失败：{e}")
+            self.LOG.error(f"Timed task error: {e}")

@@ -24,10 +24,10 @@ def main():
     signal.signal(signal.SIGINT, handler)
 
     robot = Robot(config, wcf, strategyConfig,notifyStatus)
-    robot.LOG.info("正在启动机器人···")
+    robot.LOG.info("----Starting Wechat Robot----")
 
     # 机器人启动发送测试消息
-    robot.sendTextMsg("机器人启动成功！", "filehelper")
+    robot.sendTextMsg("----Wechat Robot start success!", "filehelper")
 
     # 接收消息
     robot.enableRecvMsg()
