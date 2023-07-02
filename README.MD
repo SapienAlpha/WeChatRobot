@@ -29,6 +29,7 @@ pip install -r requirements.txt
 python main.py
 # 如果微信未打开，会自动打开微信；如果版本不对，也会有提示。
 ```
+启动成功后，微信`filehelper`/`文件传输助手`会收到启动成功的提示。
 
 ### 修改配置
 配置文件 `config.yaml` 是运行程序后自动从模板复制过来的。
